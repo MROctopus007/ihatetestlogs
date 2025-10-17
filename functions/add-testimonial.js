@@ -1,21 +1,29 @@
-import { neon } from "@neondatabase/serverless";
+import { neon } from '@netlify/neon'
 
 export async function handler(event) {
-  const db = neon(process.env.NETLIFY_DATABASE_URL);
-  const { author, message } = JSON.parse(event.body);
+  try {
+    const sql = neon(); // automatically uses NETLIFY_DATABASE_URL
+    const { name, message } = JSON.parse(event.body);
 
-  await db`
-    CREATE TABLE IF NOT EXISTS testimonials (
-      id SERIAL PRIMARY KEY,
-      author TEXT,
-      message TEXT
-    )
-  `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS testimonials (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        message TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `;
 
-  await db`INSERT INTO testimonials (author, message) VALUES (${author}, ${message})`;
+    await sql`
+      INSERT INTO testimonials (name, message)
+      VALUES (${name}, ${message});
+    `;
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ success: true }),
-  };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, message: 'Testimonial added!' }),
+    };
+  } catch (err) {
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+  }
 }

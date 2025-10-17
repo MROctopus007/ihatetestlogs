@@ -1,42 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>ihate test logs</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I Hate Test Logs</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #1c1c1c;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+    }
+    header {
+      background: #ff0000;
+      padding: 1rem;
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    section {
+      padding: 2rem;
+    }
+    form {
+      margin: 2rem auto;
+      background: #2c2c2c;
+      padding: 1.5rem;
+      border-radius: 10px;
+      max-width: 400px;
+    }
+    input, textarea {
+      width: 90%;
+      padding: 0.7rem;
+      margin: 0.5rem 0;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      background: #ff0000;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #cc0000;
+    }
+    .testimonial {
+      background: #292929;
+      border-radius: 10px;
+      margin: 1rem auto;
+      max-width: 500px;
+      padding: 1rem;
+      text-align: left;
+    }
+    .testimonial small {
+      color: #aaa;
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to ihatetestlogs</h1>
-  <form id="testimonial-form">
-    <input type="text" id="author" placeholder="Your name" required><br>
-    <textarea id="message" placeholder="Your message" required></textarea><br>
-    <button type="submit">Submit</button>
-  </form>
+  <header>I Hate Test Logs 😡</header>
+  <section>
+    <p>Test logs are the worst. They waste time, break everything, and make life miserable.  
+    Join the movement — share your pain below 👇</p>
 
-  <div id="testimonials"></div>
+    <form id="testimonial-form">
+      <input type="text" id="name" placeholder="Your name" required />
+      <textarea id="message" placeholder="Why test logs suck..." required></textarea>
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="testimonials"></div>
+  </section>
 
   <script>
-    // Add a testimonial
-    document.querySelector("#testimonial-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const author = document.querySelector("#author").value;
-      const message = document.querySelector("#message").value;
+    async function loadTestimonials() {
+      const res = await fetch('/.netlify/functions/get-testimonials');
+      const testimonials = await res.json();
 
-      await fetch("/api/add-testimonial", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ author, message })
+      const container = document.getElementById('testimonials');
+      container.innerHTML = '';
+      testimonials.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'testimonial';
+        div.innerHTML = `
+          <strong>${t.name}</strong><br>
+          ${t.message}<br>
+          <small>${new Date(t.created_at).toLocaleString()}</small>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById('testimonial-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const message = document.getElementById('message').value;
+
+      await fetch('/.netlify/functions/add-testimonial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, message })
       });
 
-      alert("Saved!");
+      document.getElementById('name').value = '';
+      document.getElementById('message').value = '';
+      loadTestimonials();
     });
 
-    // Load testimonials
-    async function loadTestimonials() {
-      const res = await fetch("/api/get-testimonials");
-      const data = await res.json();
-      const div = document.getElementById("testimonials");
-      div.innerHTML = data.map(t => `<p><b>${t.author}</b>: ${t.message}</p>`).join("");
-    }
     loadTestimonials();
   </script>
 </body>

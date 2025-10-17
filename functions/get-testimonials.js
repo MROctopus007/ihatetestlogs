@@ -1,10 +1,14 @@
-import { neon } from "@neondatabase/serverless";
+import { neon } from '@netlify/neon'
 
 export async function handler() {
-  const db = neon(process.env.NETLIFY_DATABASE_URL);
-  const rows = await db`SELECT * FROM testimonials ORDER BY id DESC`;
-  return {
-    statusCode: 200,
-    body: JSON.stringify(rows),
-  };
+  try {
+    const sql = neon();
+    const rows = await sql`SELECT * FROM testimonials ORDER BY created_at DESC;`
+    return {
+      statusCode: 200,
+      body: JSON.stringify(rows),
+    };
+  } catch (err) {
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+  }
 }
