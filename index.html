@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ihate test logs</title>
+</head>
+<body>
+  <h1>Welcome to ihatetestlogs</h1>
+  <form id="testimonial-form">
+    <input type="text" id="author" placeholder="Your name" required><br>
+    <textarea id="message" placeholder="Your message" required></textarea><br>
+    <button type="submit">Submit</button>
+  </form>
+
+  <div id="testimonials"></div>
+
+  <script>
+    // Add a testimonial
+    document.querySelector("#testimonial-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const author = document.querySelector("#author").value;
+      const message = document.querySelector("#message").value;
+
+      await fetch("/api/add-testimonial", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ author, message })
+      });
+
+      alert("Saved!");
+    });
+
+    // Load testimonials
+    async function loadTestimonials() {
+      const res = await fetch("/api/get-testimonials");
+      const data = await res.json();
+      const div = document.getElementById("testimonials");
+      div.innerHTML = data.map(t => `<p><b>${t.author}</b>: ${t.message}</p>`).join("");
+    }
+    loadTestimonials();
+  </script>
+</body>
+</html>
